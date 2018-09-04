@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -9,17 +10,22 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/iftachsc/vmwmanager/vmware"
 	_ "github.com/lib/pq"
+	"github.com/vmware/govmomi"
 )
 
 type App struct {
-	Router *mux.Router
-	DB     *sql.DB
+	Router    *mux.Router
+	DB        *sql.DB
+	VimClient *govmomi.Client
+	ctx       context.Context
 }
 
 //Initialize this is great func
 func (a *App) Initialize(user, password, dbname string) {
 
+	ctx := context.Background()
 	connectionString :=
 		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", user, password, dbname)
 
@@ -29,11 +35,23 @@ func (a *App) Initialize(user, password, dbname string) {
 		log.Fatal(err)
 	}
 
+	//initizalize vim client
+	a.VimClient, err = vmware.NewClient(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	a.ctx = ctx
+
 	a.Router = mux.NewRouter()
 	a.initializeRoutes()
+
 }
 
 func (a *App) initializeRoutes() {
+	a.Router.HandleFunc("/vms", a.getVms).Methods("GET")
+	//a.Router.HandleFunc("/vm", a.registerVm).Methods("POST")
+	a.Router.HandleFunc("/hosts", a.getHosts).Methods("GET")
+
 	a.Router.HandleFunc("/products", a.getProducts).Methods("GET")
 	a.Router.HandleFunc("/product", a.createProduct).Methods("POST")
 	a.Router.HandleFunc("/product/{id:[0-9]+}", a.getProduct).Methods("GET")
@@ -69,7 +87,31 @@ func (a *App) getProduct(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, p)
 }
 
+func (a *App) getVms(w http.ResponseWriter, r *http.Request) {
+
+	vms, err := vmware.GetVM(a.VimClient, a.ctx)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+
+	} else {
+		respondWithJSON(w, http.StatusOK, vms)
+	}
+}
+
+func (a *App) getHosts(w http.ResponseWriter, r *http.Request) {
+
+	hosts, err := vmware.GetEsxHost(a.VimClient, a.ctx)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+
+	} else {
+		respondWithJSON(w, http.StatusOK, hosts)
+	}
+}
+
 func (a *App) getProducts(w http.ResponseWriter, r *http.Request) {
+
+	println("getting products")
 	count, _ := strconv.Atoi(r.FormValue("count"))
 	start, _ := strconv.Atoi(r.FormValue("start"))
 
@@ -92,6 +134,7 @@ func (a *App) getProducts(w http.ResponseWriter, r *http.Request) {
 func (a *App) createProduct(w http.ResponseWriter, r *http.Request) {
 	var p product
 	decoder := json.NewDecoder(r.Body)
+	println("got product")
 	if err := decoder.Decode(&p); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return

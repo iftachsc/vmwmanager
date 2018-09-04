@@ -1,13 +1,11 @@
 package main
 
-import (
-	"database/sql"
-)
+import "database/sql"
 
 type product struct {
-	ID    int     `json:"id"`
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
+	ID    int
+	Name  string
+	Price int
 }
 
 func getProducts(db *sql.DB, start, count int) ([]product, error) {
