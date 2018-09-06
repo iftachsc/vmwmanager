@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/iftachsc/vmwmanager/vmware"
+	"github.com/iftachsc/vmware"
 	_ "github.com/lib/pq"
 	"github.com/vmware/govmomi"
 )
@@ -39,6 +40,8 @@ func (a *App) Initialize(user, password, dbname string) {
 	a.VimClient, err = vmware.NewClient(ctx)
 	if err != nil {
 		log.Fatal(err)
+		println(err.Error())
+		os.Exit(1)
 	}
 	a.ctx = ctx
 
