@@ -1,10 +1,13 @@
 package main
 
 import (
+	"flag"
 	"os"
 )
 
 func main() {
+
+	flag.Parse()
 	a := App{}
 	a.Initialize(
 		os.Getenv("APP_DB_USERNAME"),

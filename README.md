@@ -1,2 +1,2 @@
 # vmwmanager
-Microservice in charger of vmware aspects
+Microservice in charge of vmware aspects
