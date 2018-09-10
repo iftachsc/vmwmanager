@@ -15,7 +15,6 @@ func makeRdmMetadataV1(backing types.VirtualDiskRawDiskMappingVer1BackingInfo) *
 }
 
 func makeRdmVsphereDiskV1(backing *types.VirtualDiskRawDiskMappingVer1BackingInfo) *contracts.VsphereRdmDisk {
-	println("RDM MAN! v1")
 	return &contracts.VsphereRdmDisk{
 		DescriptorFileName:  backing.FileName,
 		DescriptorDatastore: backing.Datastore.String(), //TODO extract datastore name
@@ -25,7 +24,6 @@ func makeRdmVsphereDiskV1(backing *types.VirtualDiskRawDiskMappingVer1BackingInf
 }
 
 func makeRdmVsphereDiskV2(backing *types.VirtualDiskRawDiskVer2BackingInfo) *contracts.VsphereRdmDisk {
-	println("RDM MAN! v2")
 	return &contracts.VsphereRdmDisk{
 		DescriptorFileName:  backing.DescriptorFileName,
 		DescriptorDatastore: backing.DescriptorFileName, //TODO extract datastore name
@@ -43,29 +41,6 @@ func makeFlatVsphereDiskV2(backing *types.VirtualDiskFlatVer2BackingInfo) *contr
 }
 
 func makeVsphereDisk(disk *types.VirtualDisk) contracts.VsphereDisk {
-	var vsphereDisk contracts.VsphereDisk
-
-	switch backing := disk.GetVirtualDevice().Backing.(type) {
-	case *types.VirtualDiskFlatVer1BackingInfo:
-		println("not implemented")
-	case *types.VirtualDiskFlatVer2BackingInfo:
-		vsphereDisk = makeFlatVsphereDiskV2(backing)
-
-	case *types.VirtualDiskRawDiskMappingVer1BackingInfo:
-		vsphereDisk = makeRdmVsphereDiskV1(backing)
-
-	case *types.VirtualDiskRawDiskVer2BackingInfo:
-		vsphereDisk = makeRdmVsphereDiskV2(backing)
-	default:
-		println("cannot determine type")
-	}
-
-	vsphereDisk.SetCapacityMB(disk.CapacityInKB / 1024)
-
-	return vsphereDisk
-}
-
-func getScsiControllerFromDevice(disk *types.VirtualDisk) contracts.VsphereDisk {
 	var vsphereDisk contracts.VsphereDisk
 
 	switch backing := disk.GetVirtualDevice().Backing.(type) {

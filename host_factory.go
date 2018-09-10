@@ -11,7 +11,7 @@ func makeEsxHost(apiHost mo.HostSystem) contracts.EsxHost {
 		apiHost.Summary.Hardware.Model}
 }
 
-func apiHostssToContractEsxHosts(apiHosts []mo.HostSystem) []contracts.EsxHost {
+func apiHostsToContractEsxHosts(apiHosts []mo.HostSystem) []contracts.EsxHost {
 
 	hosts := []contracts.EsxHost{}
 
